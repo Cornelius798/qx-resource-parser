@@ -15,6 +15,7 @@
 | `isQuanX()` / 两处 `QuanXK` | 类型白名单补 `hysteria2`，否则转换结果会在收尾阶段被丢掉 |
 | `XUDP()` / `QX_TLS()` | 类型正则补 `hysteria2`，`udp=1` 时不会误写成 `udp-relay=false` |
 | `TagCheck_QX()` typefix | 补 `hysteria2` 条目（空 tag 兜底） |
+| HY2 三字段补齐（2026-11-22） | `port-hopping-interval` / `download-bandwidth` / `tls-cert-sha256`：Clash 的 `hop-interval` / `down` / `fingerprint` 与 URI 对应参数 → QX 行（上游字段移植，门槛保持自家正则；非法值只丢字段、不跳节点） |
 | 新增 `MIERU_Build() / MIERU_OK()` | 从 `$environment.version` 解析 build 号，`>=968` 或解析不到时放行 mieru |
 | 新增 `CMIERU_2QX()` | Clash / Clash.Meta 的 `type: mieru` 节点 → QX 行 |
 | 新增 `MIERU_URI2QX()` | `mierus://` 明文分享链接 → QX 行（多组 `port`/`protocol` 只取第一组） |
@@ -36,10 +37,15 @@ Clash → QX：
 - `obfs: salamander` + `obfs-password` → `salamander-password=`
 - `sni` → `tls-host=`
 - `skip-cert-verify: true` → `tls-verification=false`
+- `hop-interval` → `port-hopping-interval=`（仅当 `ports` 存在时写出；不校验 5–3600 范围）
+- `down` → `download-bandwidth=`（Mbps 数字：`100 Mbps`→100，`1 Gbps`→1000，`10MBps`→80；解析不出丢弃）
+- `fingerprint` → `tls-cert-sha256=`（64 位 hex，冒号分隔的也认，非法丢弃；`skip-cert-verify: true` 时丢弃）
 - 固定 `udp-relay=true`；`name` → `tag=`
 
-URI 参数：`mport`/`ports` → `port-hopping`，`obfs=salamander&obfs-password=` → `salamander-password`，
+URI 参数：`port-hopping`/`mport`/`ports` → `port-hopping`，`obfs=salamander&obfs-password=` → `salamander-password`，
 `sni`/`peer` → `tls-host`，`insecure=1` → `tls-verification=false`，`#fragment` → `tag`。
+`port-hopping-interval`/`hop-interval` → `port-hopping-interval=`（同上），`download-bandwidth`/`down` → `download-bandwidth=`，
+`pinSHA256` → `tls-cert-sha256=`（`insecure=1` 时丢弃）。
 
 Mieru，Clash → QX：
 

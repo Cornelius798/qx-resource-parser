@@ -4724,15 +4724,34 @@ function HY2_Clean(v) {
   if (v === undefined || v === null) return "";
   return String(v).replace(/[\r\n]+/g, " ").trim();
 }
+// SHA-256 指纹：64 位 hex，或冒号分隔的 32 字节；非法直接丢弃（上游是整节点跳过，这里只丢字段）
+function HY2_Pin(v) {
+  if (v === undefined || v === null) return "";
+  var s = String(v).trim();
+  if (!/^(?:[0-9a-f]{64}|(?:[0-9a-f]{2}:){31}[0-9a-f]{2})$/i.test(s)) return "";
+  return s.replace(/:/g, "").toLowerCase();
+}
+// 下载带宽换算成 Mbps 数字：裸数字当 Mbps，"100 Mbps"→100，"1 Gbps"→1000，"10MBps"→80；解析不出直接丢弃
+function HY2_Bandwidth(v) {
+  if (v === undefined || v === null) return "";
+  var m = String(v).trim().match(/^(\d+(?:\.\d+)?)(?:\s*([KMGT]?)([bB])ps)?$/i);
+  if (!m) return "";
+  var mbps = Number(m[1]) * (m[3] ? Math.pow(1000, " KMGT".indexOf((m[2] || " ").toUpperCase()) - 2) * (m[3] == "B" ? 8 : 1) : 1);
+  if (!Number.isFinite(mbps) || /e/i.test(String(mbps))) return "";
+  return String(mbps);
+}
 function HY2_Line(host, port, password, o, tag) {
   o = o || {};
   var line = "hysteria2=" + HY2_Clean(host) + ":" + HY2_Clean(port);
   line += ", password=" + HY2_Clean(password);
   if (o.hopping) line += ", port-hopping=" + HY2_Clean(o.hopping);
+  if (o.hopping && o.interval) line += ", port-hopping-interval=" + HY2_Clean(o.interval); // 无跳跃不写间隔
   if (o.salamander) line += ", salamander-password=" + HY2_Clean(o.salamander);
   if (o.sni) line += ", tls-host=" + HY2_Clean(o.sni);
   if (o.insecure) line += ", tls-verification=false";
+  if (!o.insecure && o.certPin) line += ", tls-cert-sha256=" + HY2_Clean(o.certPin); // 关闭验证时 QX 忽略指纹，直接丢弃
   line += ", udp-relay=true";
+  if (o.down) line += ", download-bandwidth=" + HY2_Clean(o.down);
   line += ", tag=" + (HY2_Clean(tag) || "hysteria2");
   return line;
 }
@@ -4745,6 +4764,9 @@ function CHY2_2QX(node) {
   if (obfs === "salamander" && node["obfs-password"]) o.salamander = node["obfs-password"];
   if (node.sni) o.sni = node.sni;
   if (node["skip-cert-verify"] === true) o.insecure = true;
+  if (node["hop-interval"] !== undefined && node["hop-interval"] !== null && String(node["hop-interval"]) !== "") o.interval = node["hop-interval"];
+  if (node.down !== undefined && node.down !== null && String(node.down) !== "") o.down = HY2_Bandwidth(node.down);
+  if (node.fingerprint) o.certPin = HY2_Pin(node.fingerprint);
   return HY2_Line(node.server, node.port || 443, node.password, o, node.name);
 }
 // hysteria2:// 与 hy2:// URI
@@ -4772,10 +4794,13 @@ function HY2_URI2QX(uri) {
     p[k.toLowerCase()] = v;
   });
   var o = {};
-  if (p["mport"] || p["ports"]) o.hopping = p["mport"] || p["ports"];
+  if (p["port-hopping"] || p["mport"] || p["ports"]) o.hopping = p["port-hopping"] || p["mport"] || p["ports"];
   if ((p["obfs"] || "").toLowerCase() == "salamander" && p["obfs-password"]) o.salamander = p["obfs-password"];
   if (p["sni"] || p["peer"]) o.sni = p["sni"] || p["peer"];
   if (p["insecure"] == "1" || p["insecure"] == "true") o.insecure = true;
+  if (p["port-hopping-interval"] || p["hop-interval"]) o.interval = p["port-hopping-interval"] || p["hop-interval"];
+  if (p["download-bandwidth"] || p["down"]) o.down = HY2_Bandwidth(p["download-bandwidth"] || p["down"]);
+  if (p["pinsha256"]) o.certPin = HY2_Pin(p["pinsha256"]);
   var pwd = auth;
   try { pwd = decodeURIComponent(auth); } catch (e) {}
   try { tag = decodeURIComponent(tag); } catch (e) {}
