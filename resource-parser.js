@@ -1170,14 +1170,15 @@ function Type_Check(subs) {
     var type = "unknown"
     var RuleK = ["host,", "-suffix,", "domain,", "domain-regex,", "-keyword,", "ip-cidr,", "ip-cidr6,",  "geoip,", "user-agent,", "ip6-cidr,", "ip-asn", "and,", "or,", "not,"];
     var DomainK = ["domain-set,"]
-    var QuanXK = ["shadowsocks=", "trojan=", "vmess=", "http=", "socks5=", "vless=","anytls=", "hysteria2="];
+    var QuanXK = ["shadowsocks=", "trojan=", "vmess=", "http=", "socks5=", "vless=","anytls=", "hysteria2=", "mieru="];
     var SurgeK = ["=ss,", "=vmess,", "=trojan,", "=http,", "=custom,", "=https,", "=shadowsocks", "=shadowsocksr", "=sock5", "=sock5-tls","=anytls"];
     var ClashK = ["proxies:","\"proxies\":"]
     var SubK = ["dm1lc3M", "c3NyOi8v", "CnNzOi8", "dHJvamFu", "c3M6Ly", "c3NkOi8v", "c2hhZG93", "aHR0cDovLw", "aHR0cHM6L", "CnRyb2phbjo", "aHR0cD0", "aHR0cCA","U1RBVFVT","dmxlc3M6"];
     var RewriteK = [" url 302", " url 307", " url reject", " url script", " url req", " url res", " url echo", " url-and-header 302", " url-and-header 307", " url-and-header reject", " url-and-header script", " url-and-header req", " url-and-header res", " url-and-header echo", " url jsonjq"] // quantumult X 类型 rewrite
     var JsonJQK = [" response-body-json-jq ", " request-body-json-jq ", " response-body-json-del ", " response-body-json-replace ", " http-response-jq ", " http-request-jq "] // 需要转换成 QuanX jsonjq 的 rewrite
     // ⟦2026-09-18 14:27 +08⟧ Hysteria2 两种 URI 前缀进入节点处理，由不支持分支统一提示，避免误走未知/Base64 分支。
-    var SubK2 = ["ss://", "vmess://", "ssr://", "trojan://", "ssd://", "\nhttps://", "\nhttp://","socks://","ssocks://","vless://","anytls://","wireguard://","wg://","tuic://","hysteria2://","hy2://"];
+    // ⟦2026-11-22⟧ Mieru 两种 URI 前缀：mierus:// 明文分享链接可转，mieru:// base64 形式走不支持分支提示。
+    var SubK2 = ["ss://", "vmess://", "ssr://", "trojan://", "ssd://", "\nhttps://", "\nhttp://","socks://","ssocks://","vless://","anytls://","wireguard://","wg://","tuic://","hysteria2://","hy2://","mieru://","mierus://"];
     var ModuleK = ["[Script]", "[Rule]", "[URL Rewrite]", "[Body Rewrite]", "[Map Local]", "\nhttp-r", "script-path"]
     var QXProfile = ["[filter_local]","[filter_remote]","[server_local]","[server_remote]"]
     var html = "DOCTYPE html"
@@ -1281,7 +1282,8 @@ function TagCheck_QX(content) {
     "vmess":["𝐯𝐦𝐞𝐬𝐬","𝐕𝐌𝐄𝐒𝐒","🅥🅜🅔🅢🅢","🆅🅼🅴🆂🆂","ⓥⓜⓔⓢⓢ","🅅🄼🄴🅂🅂","VMESS"],"trojan":["𝐭𝐫𝐨𝐣𝐚𝐧","𝐓𝐑𝐎𝐉𝐀𝐍","🅣🅡🅞🅙🅐🅝","🆃🆁🅾🅹🅰🅽","ⓣⓡⓞⓙⓐⓝ","🅃🅁🄾🄹🄰🄽","TROJAN"],
     "http":["𝐡𝐭𝐭𝐩","𝐇𝐓𝐓𝐏","🅗🅣🅣🅟","🅷🆃🆃🅿","ⓗⓣⓣⓟ","🄷🅃🅃🄿","HTTP"],"socks5":["𝐬𝐨𝗰𝗸𝐬","𝐒𝐎𝐂𝐊𝐒","🅢🅞🅒🅚🅢","🆂🅾🅲🅺🆂","ⓢⓄⒸⓀⓢ","🅂🄾🄲🄺🅂","SOCKS"],
     "vless":["𝐯𝐥𝐞𝐬𝐬","𝐕𝐋𝐄𝐒𝐒","🅥🅛🅔🅢🅢","🆅🅻🅴🆂🆂","ⓥⓛⓔⓢⓢ","🅅🄻🄴🅂🅂","VLESS"],
-    "hysteria2":["𝐡𝐲𝟐","𝐇𝐘𝟐","🅗🅨➋","🅷🆈➋","ⓗⓨ➋","🄷🅈➋","HY2"],"anytls":["𝐚𝐧𝐲𝐭𝐥𝐬","𝐀𝐍𝐘𝐓𝐋𝐒","🅐🅝🅨🅣🅛🅢","🅰🅽🆈🆃🅻🆂","ⓐⓝⓨⓣⓛⓢ","🄰🄽🅈🅃🄻🅂","𝖠𝖭𝖸𝖳𝖫𝖲"]
+    "hysteria2":["𝐡𝐲𝟐","𝐇𝐘𝟐","🅗🅨➋","🅷🆈➋","ⓗⓨ➋","🄷🅈➋","HY2"],"anytls":["𝐚𝐧𝐲𝐭𝐥𝐬","𝐀𝐍𝐘𝐓𝐋𝐒","🅐🅝🅨🅣🅛🅢","🅰🅽🆈🆃🅻🆂","ⓐⓝⓨⓣⓛⓢ","🄰🄽🅈🅃🄻🅂","𝖠𝖭𝖸𝖳𝖫𝖲"],
+    "mieru":["𝐦𝐢𝐞𝐫𝐮","𝐌𝐈𝐄𝐑𝐔","🅜🅘🅔🅡🅤","🅼🅸🅴🆁🆄","ⓜⓘⓔⓡⓤ","🄼🄸🄴🅁🅄","MIERU"]
   } // type
   console.log(content)
     var Olist = content.map(item =>item.trim())//.replace(/\s{2,}/g," "))
@@ -2647,7 +2649,7 @@ function Reality_Handle(cnt) {
 function Subs2QX(subs, Pudp, Ptfo, Pcert0, PTls13) {
   if (Pdbg) {$notify("subs", "node", subs)}
     var list0 = subs.split("\n");
-    var QuanXK = ["shadowsocks=", "trojan=", "vmess=", "http=","socks5=", "vless=", "anytls=", "hysteria2="];
+    var QuanXK = ["shadowsocks=", "trojan=", "vmess=", "http=","socks5=", "vless=", "anytls=", "hysteria2=", "mieru="];
     var SurgeK = ["=ss,", "=vmess,", "=trojan,", "=http,", "=https,", "=custom,", "=socks5", "=socks5-tls","=anytls"];
     var LoonK = ["=Shadowsocks", "=ShadowsocksR", "=Trojan", "=VLESS","=AnyTLS"]
     var QXlist = [];
@@ -2727,7 +2729,10 @@ function Subs2QX(subs, Pudp, Ptfo, Pcert0, PTls13) {
                 } else if ((type == "hysteria2" || type == "hy2") && HY2_OK()) { // ⟦2026-11-19⟧ QX 1.9.0(965)+ 原生支持 Hysteria2
                   node = HY2_URI2QX(list0[i])
                   node = tag0 != "" ? URI_TAG(node, tag0) : node
-                } else if (type=="hysteria2" || type=="hy2" || (type=="anytls" && version<914) || type=="tuic" || type=="wireguard"|| type=="wg") { // hy2 与 hysteria2 共用不支持提示
+                } else if (type == "mierus" && MIERU_OK()) { // ⟦2026-11-22⟧ QX 1.9.0(968)+ 原生支持 Mieru
+                  node = MIERU_URI2QX(list0[i])
+                  node = tag0 != "" ? URI_TAG(node, tag0) : node
+                } else if (type=="mierus" || type=="mieru" || type=="hysteria2" || type=="hy2" || (type=="anytls" && version<914) || type=="tuic" || type=="wireguard"|| type=="wg") { // mieru 与 hy2 共用不支持提示
                   PNS=PNS+1 
                   NSList.push(numToEmoji10(PNS)+list0[i])
                 } else if (/^STATUS\=/.test(listi)) { // flow info fake server
@@ -2808,7 +2813,7 @@ function QX_TLS(cnt,Pcert0,PTls13) {
     cnt = cnt.replace(new RegExp("tag\s*\=", "gmi"), tls13+"tag=")
   }
   }
-  if (!/^(shadowsocks|trojan|vmess|vless|anytls|hysteria2)/.test(cnt.trim())) { //关闭非 ss/ssr/trojan/vmess/vless/hysteria2 类型的 udp
+  if (!/^(shadowsocks|trojan|vmess|vless|anytls|hysteria2|mieru)/.test(cnt.trim())) { //关闭非 ss/ssr/trojan/vmess/vless/hysteria2/mieru 类型的 udp
     udp =  "udp-relay=false, "
     if(cnt.indexOf("udp-relay") != -1){
       var cnt = cnt.replace(RegExp("udp\-relay.*?\,", "gmi"), udp)
@@ -3528,7 +3533,7 @@ function isQuanX(content) {
         var cnti = cnts[i];
         if (cnti.indexOf("=") != -1 && cnti.indexOf("tag") != -1) {
             var cnt = cnti.split("=")[0].trim()
-            if (cnt == "http" || cnt == "shadowsocks" || cnt == "trojan" || cnt == "vmess" || cnt == "socks5" || cnt == "vless" ||  cnt == "anytls" || cnt == "hysteria2") { // ⟦2026-11-19⟧ hy2
+            if (cnt == "http" || cnt == "shadowsocks" || cnt == "trojan" || cnt == "vmess" || cnt == "socks5" || cnt == "vless" ||  cnt == "anytls" || cnt == "hysteria2" || cnt == "mieru") { // ⟦2026-11-19⟧ hy2 ⟦2026-11-22⟧ mieru
                 nlist.push(QXFix(cnti))
             }
         }
@@ -4778,6 +4783,86 @@ function HY2_URI2QX(uri) {
 }
 // ===== Hysteria2 补丁结束 =====
 
+// ===== ⟦2026-11-22⟧ Mieru 支持补丁 (Quantumult X 1.9.0 build 968+) =====
+// 输出格式依据 QX 1.9.0 (968) 官方示例：
+//   mieru=example.com:8964, username=name, password=pwd, tag=mieru-01
+//   mieru=example.com:8964, username=name, password=pwd, udp-relay=true, udp-over-tcp=true, tag=mieru-02
+// TLS / REALITY 暂不由转换生成：Clash 与 mierus:// 均无对应字段；QX 侧按惯例用
+// tls-host / tls-verification / reality-base64-pubkey / reality-hex-shortid 追加，字段名以 App 内配置样本为准。
+function MIERU_Build() {
+  var v = (typeof $environment != "undefined" && $environment && $environment.version) ? String($environment.version) : "";
+  var m = v.match(/build\D*(\d+)/i) || v.match(/(\d+)\D*$/);
+  return m ? Number(m[1]) : 0;
+}
+function MIERU_OK() { var b = MIERU_Build(); return b === 0 || b >= 968 } // 探测不到 build 时按支持处理（自用）
+function MIERU_Clean(v) {
+  if (v === undefined || v === null) return "";
+  return String(v).replace(/[\r\n]+/g, " ").trim();
+}
+function MIERU_Line(host, port, username, password, o, tag) {
+  o = o || {};
+  var line = "mieru=" + MIERU_Clean(host) + ":" + MIERU_Clean(port);
+  line += ", username=" + MIERU_Clean(username);
+  line += ", password=" + MIERU_Clean(password);
+  if (o.udp) line += ", udp-relay=true, udp-over-tcp=true";
+  line += ", tag=" + (MIERU_Clean(tag) || "mieru");
+  return line;
+}
+// Clash / Clash.Meta 的 mieru 节点对象
+// port-range 取首端口；multiplexing / handshake-mode / traffic-pattern / mtu / dialer-proxy 无 QX 对应字段，直接丢弃
+function CMIERU_2QX(node) {
+  var o = {};
+  var port = node.port;
+  if ((port === undefined || port === null || port === "") && node["port-range"]) {
+    port = String(node["port-range"]).split("-")[0];
+  }
+  var transport = (node.transport === undefined || node.transport === null) ? "TCP" : String(node.transport).toUpperCase();
+  if (transport === "UDP" || node.udp === true) o.udp = true;
+  return MIERU_Line(node.server, port || 443, node.username, node.password, o, node.name);
+}
+// mierus:// 明文分享链接（mieru export config simple / 安装脚本生成）
+//   mierus://user:pass@host?port=443&protocol=TCP&profile=simple#tag
+// 多组 port/protocol 只取第一组；mieru:// base64 形式暂不支持
+function MIERU_URI2QX(uri) {
+  var s = MIERU_Clean(uri), tag = "", q = "", auth = "";
+  if (s.indexOf("#") != -1) { tag = s.slice(s.indexOf("#") + 1); s = s.slice(0, s.indexOf("#")); }
+  s = s.replace(/^mierus:\/\//i, "");
+  if (s.indexOf("?") != -1) { q = s.slice(s.indexOf("?") + 1); s = s.slice(0, s.indexOf("?")); }
+  s = s.replace(/\/+$/, "");
+  if (s.indexOf("@") != -1) { auth = s.slice(0, s.indexOf("@")); s = s.slice(s.indexOf("@") + 1); }
+  var host = s, port = "443";
+  if (/^\[/.test(s)) { // IPv6
+    var k = s.indexOf("]");
+    host = s.slice(0, k + 1);
+    port = s.slice(k + 1).replace(/^:/, "") || "443";
+  } else if (s.lastIndexOf(":") != -1) {
+    host = s.slice(0, s.lastIndexOf(":"));
+    port = s.slice(s.lastIndexOf(":") + 1) || "443";
+  }
+  var user = "", pwd = "";
+  if (auth.indexOf(":") != -1) { user = auth.slice(0, auth.indexOf(":")); pwd = auth.slice(auth.indexOf(":") + 1); }
+  else { user = auth; }
+  // query 参数可重复出现（port / protocol 成对出现），只取第一组；无 port 参数时用 authority 里的端口
+  var ports = [], protos = [];
+  q.split("&").forEach(function (kv) {
+    if (!kv) return;
+    var i = kv.indexOf("="), k = i == -1 ? kv : kv.slice(0, i), v = i == -1 ? "" : kv.slice(i + 1);
+    try { v = decodeURIComponent(v); } catch (e) {}
+    k = k.toLowerCase();
+    if (k === "port") ports.push(v);
+    else if (k === "protocol") protos.push(v);
+  });
+  if (ports.length) port = String(ports[0]).split("-")[0];
+  var proto = protos.length ? String(protos[0]).toUpperCase() : "TCP";
+  var o = {};
+  if (proto === "UDP") o.udp = true;
+  try { user = decodeURIComponent(user); } catch (e) {}
+  try { pwd = decodeURIComponent(pwd); } catch (e) {}
+  try { tag = decodeURIComponent(tag); } catch (e) {}
+  return MIERU_Line(host, port, user, pwd, o, tag);
+}
+// ===== Mieru 补丁结束 =====
+
 function Clash2QX(cnt) {
   const yaml = new YAML()
   //if (Pdbg==1) { $notify(" Before YAML Parse", "content", cnt)}
@@ -4814,6 +4899,8 @@ function Clash2QX(cnt) {
         node = CTLS2QX(node)
       } else if ((typecc == "hysteria2" || typecc == "hy2") && HY2_OK()) { // ⟦2026-11-19⟧ Hysteria2
         node = CHY2_2QX(node)
+      } else if (typecc == "mieru" && MIERU_OK()) { // ⟦2026-11-22⟧ Mieru
+        node = CMIERU_2QX(node)
       } else { // not support type
         PNS = PNS+1
         NSList.push(numToEmoji10(PNS)+bb[i])
@@ -5089,7 +5176,7 @@ function CVL2QX(cnt){
 
 // UDP/TFO 参数 (强制 surge/quanx 类型转换)
 function XUDP(cnt,pudp) {
-  var udp = pudp != -1 && /^(shadowsocks|trojan|vmess|vless|anytls|hysteria2)/.test(cnt.trim()) ? "udp-relay=true, " : "udp-relay=false, "
+  var udp = pudp != -1 && /^(shadowsocks|trojan|vmess|vless|anytls|hysteria2|mieru)/.test(cnt.trim()) ? "udp-relay=true, " : "udp-relay=false, "
   if(cnt.indexOf("udp-relay") != -1){
     var cnt0 = cnt.replace(RegExp("udp\-relay.*?\,", "gmi"), udp)
   }else{
