@@ -1,5 +1,5 @@
 /** 
-☑️ 资源解析器 ©𝐒𝐡𝐚𝐰𝐧  ⟦2026-11-22 16:30 UTC+8⟧
+☑️ 资源解析器 ©𝐒𝐡𝐚𝐰𝐧  ⟦2026-11-22 16:33 UTC+8⟧
 ----------------------------------------------------------
 🛠 发现 𝐁𝐔𝐆 请反馈: https://t.me/ShawnKOP_Parser_Bot
 ⛳️ 关注 🆃🅶 相关频道: https://t.me/QuanX_API
@@ -4847,7 +4847,7 @@ function CMIERU_2QX(node) {
 }
 // mierus:// 明文分享链接（mieru export config simple / 安装脚本生成）
 //   mierus://user:pass@host?port=443&protocol=TCP&profile=simple#tag
-// 多组 port/protocol 只取第一组；mieru:// base64 形式暂不支持
+// 多组 port/protocol 只取第一组；无 #tag 时用 profile 参数作 tag（default 除外）；mieru:// base64 形式暂不支持
 function MIERU_URI2QX(uri) {
   var s = MIERU_Clean(uri), tag = "", q = "", auth = "";
   if (s.indexOf("#") != -1) { tag = s.slice(s.indexOf("#") + 1); s = s.slice(0, s.indexOf("#")); }
@@ -4868,7 +4868,7 @@ function MIERU_URI2QX(uri) {
   if (auth.indexOf(":") != -1) { user = auth.slice(0, auth.indexOf(":")); pwd = auth.slice(auth.indexOf(":") + 1); }
   else { user = auth; }
   // query 参数可重复出现（port / protocol 成对出现），只取第一组；无 port 参数时用 authority 里的端口
-  var ports = [], protos = [];
+  var ports = [], protos = [], profile = "";
   q.split("&").forEach(function (kv) {
     if (!kv) return;
     var i = kv.indexOf("="), k = i == -1 ? kv : kv.slice(0, i), v = i == -1 ? "" : kv.slice(i + 1);
@@ -4876,6 +4876,7 @@ function MIERU_URI2QX(uri) {
     k = k.toLowerCase();
     if (k === "port") ports.push(v);
     else if (k === "protocol") protos.push(v);
+    else if (k === "profile" && !profile) profile = v;
   });
   if (ports.length) port = String(ports[0]).split("-")[0];
   var proto = protos.length ? String(protos[0]).toUpperCase() : "TCP";
@@ -4884,6 +4885,7 @@ function MIERU_URI2QX(uri) {
   try { user = decodeURIComponent(user); } catch (e) {}
   try { pwd = decodeURIComponent(pwd); } catch (e) {}
   try { tag = decodeURIComponent(tag); } catch (e) {}
+  if (!tag && profile && profile.toLowerCase() !== "default") tag = profile; // 无 fragment 时用 profile 作 tag
   return MIERU_Line(host, port, user, pwd, o, tag);
 }
 // ===== Mieru 补丁结束 =====

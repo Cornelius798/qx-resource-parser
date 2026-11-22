@@ -56,7 +56,7 @@ Mieru，Clash → QX：
 - `name` → `tag=`
 
 Mieru，`mierus://` 链接参数：`port`（可重复，取第一个；范围取首端口）与 `protocol`（可重复，取第一个；`UDP` → 追加两条 udp 字段），
-`profile` / `mtu` / `multiplexing` / `handshake-mode` / `traffic-pattern` 丢弃，`#fragment` → `tag`。
+`mtu` / `multiplexing` / `handshake-mode` / `traffic-pattern` 丢弃；`#fragment` → `tag`，无 fragment 时用 `profile` 作 tag（`default` 除外）。
 `mieru://` 是 base64 整包形式，无法解析，暂不支持。
 
 ## 在 QX 里使用
